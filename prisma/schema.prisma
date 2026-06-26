@@ -1,0 +1,145 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id
+  name          String
+  email         String
+  emailVerified Boolean   @default(false)
+  image         String?
+  role          String    @default("user")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+  instagramConnectedAccounts InstagramConnectedAccount[]
+  publications  Publication[]
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+model InstagramConnectedAccount {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  instagramUserId   String
+  username          String
+  displayName       String?
+  profilePictureUrl String?
+  accessToken       String
+  tokenExpiresAt    DateTime
+  scopes            String
+  status            String   @default("connected")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  publicationTargets PublicationTarget[]
+
+  @@unique([userId, instagramUserId])
+  @@index([userId])
+  @@index([status])
+  @@map("instagram_connected_account")
+}
+
+model InstagramOAuthState {
+  id        String   @id @default(cuid())
+  userId    String
+  state     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("instagram_oauth_state")
+}
+
+model Publication {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type            String
+  destinationScope String
+  caption         String?
+  mediaUrl        String
+  status          String   @default("pending")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  targets         PublicationTarget[]
+
+  @@index([userId])
+  @@index([status])
+  @@map("publication")
+}
+
+model PublicationTarget {
+  id                        String   @id @default(cuid())
+  publicationId             String
+  publication               Publication @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+  instagramConnectedAccountId String
+  instagramConnectedAccount InstagramConnectedAccount @relation(fields: [instagramConnectedAccountId], references: [id], onDelete: Cascade)
+  status                    String   @default("pending")
+  instagramMediaId          String?
+  errorMessage              String?
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  @@index([publicationId])
+  @@index([instagramConnectedAccountId])
+  @@index([status])
+  @@map("publication_target")
+}

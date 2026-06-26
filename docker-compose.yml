@@ -1,0 +1,18 @@
+name: instagram-posts-auto
+
+services:
+  instagram-posts-postgres:
+    image: postgres:16-alpine
+    container_name: instagram-posts-auto-postgres
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: instagram_posts_auto
+    volumes:
+      - instagram-posts-auto-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  instagram-posts-auto-postgres-data:

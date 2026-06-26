@@ -1,0 +1,58 @@
+import { cors } from "@elysiajs/cors";
+import { swagger } from "@elysiajs/swagger";
+import { EnvService } from "@/http/services/env/env.service";
+import { createHttpServerClient } from "@/http/client";
+import { HealthRoutes } from "@/http/routes/api/v1/health.routes";
+import { UserRoutes } from "@/http/routes/api/v1/user.routes";
+import { InstagramRoutes } from "@/http/routes/api/v1/instagram.routes";
+import { InstagramCallbackRoutes } from "@/http/routes/api/v1/instagram-callback.routes";
+import { PublicationRoutes } from "@/http/routes/api/v1/publication.routes";
+import { registerGlobalApiErrorHandler } from "@/http/utils/register-global-api-error-handler";
+
+export class AppService {
+  private readonly env = EnvService.getInstance();
+  private readonly serverClient = createHttpServerClient();
+
+  start(): void {
+    const app = this.serverClient.getApp();
+
+    app
+      .use(
+        cors({
+          origin: this.env.corsOrigin,
+          methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+          credentials: true,
+          allowedHeaders: ["Content-Type", "Authorization"],
+        }),
+      )
+      .use(
+        swagger({
+          documentation: {
+            info: {
+              title: "Instagram Posts Auto API",
+              version: "0.1.0",
+              description:
+                "API para publicação centralizada de posts e stories no Instagram.",
+            },
+          },
+        }),
+      );
+
+    app.group("/api/v1", (group) =>
+      group
+        .use(new HealthRoutes(this.serverClient).build())
+        .use(new InstagramCallbackRoutes(this.serverClient).build())
+        .use(new UserRoutes(this.serverClient).build())
+        .use(new InstagramRoutes(this.serverClient).build())
+        .use(new PublicationRoutes(this.serverClient).build()),
+    );
+
+    registerGlobalApiErrorHandler(app);
+
+    app.listen(this.env.port, ({ hostname, port }) => {
+      console.log(`Server running at http://${hostname}:${port}`);
+      console.log(`Swagger available at http://${hostname}:${port}/swagger`);
+      console.log(`Better Auth available at http://${hostname}:${port}/api/auth`);
+    });
+  }
+}
