@@ -18,6 +18,23 @@ interface IInstagramPublishResponse {
   };
 }
 
+interface IInstagramContainerStatusResponse {
+  status_code?: string;
+  error?: {
+    message?: string;
+  };
+}
+
+type InstagramContainerStatusCode =
+  | "EXPIRED"
+  | "ERROR"
+  | "FINISHED"
+  | "IN_PROGRESS"
+  | "PUBLISHED";
+
+const CONTAINER_POLL_INTERVAL_MS = 3_000;
+const CONTAINER_POLL_MAX_ATTEMPTS = 60;
+
 export class InstagramContentPublishingClient {
   async publishPost(input: IPublishMediaInput): Promise<IPublishMediaResult> {
     const containerId = await this.createMediaContainer(input.instagramUserId, {
@@ -25,6 +42,8 @@ export class InstagramContentPublishingClient {
       mediaUrl: input.mediaUrl,
       caption: input.caption,
     });
+
+    await this.waitForContainerReady(containerId, input.accessToken);
 
     return this.publishContainer(input.instagramUserId, {
       accessToken: input.accessToken,
@@ -38,6 +57,8 @@ export class InstagramContentPublishingClient {
       mediaUrl: input.mediaUrl,
       mediaType: "STORIES",
     });
+
+    await this.waitForContainerReady(containerId, input.accessToken);
 
     return this.publishContainer(input.instagramUserId, {
       accessToken: input.accessToken,
@@ -89,6 +110,69 @@ export class InstagramContentPublishingClient {
     }
 
     return data.id;
+  }
+
+  private async waitForContainerReady(
+    containerId: string,
+    accessToken: string,
+  ): Promise<void> {
+    for (let attempt = 0; attempt < CONTAINER_POLL_MAX_ATTEMPTS; attempt++) {
+      const statusCode = await this.getContainerStatusCode(containerId, accessToken);
+
+      if (statusCode === "FINISHED" || statusCode === "PUBLISHED") {
+        return;
+      }
+
+      if (statusCode === "ERROR") {
+        throw new AppError(
+          "Falha ao processar mídia no Instagram",
+          502,
+          "instagram_media_container_processing_failed",
+        );
+      }
+
+      if (statusCode === "EXPIRED") {
+        throw new AppError(
+          "O container de mídia expirou antes de ser publicado",
+          502,
+          "instagram_media_container_expired",
+        );
+      }
+
+      await this.sleep(CONTAINER_POLL_INTERVAL_MS);
+    }
+
+    throw new AppError(
+      "Tempo esgotado aguardando processamento da mídia no Instagram",
+      504,
+      "instagram_media_container_timeout",
+    );
+  }
+
+  private async getContainerStatusCode(
+    containerId: string,
+    accessToken: string,
+  ): Promise<InstagramContainerStatusCode> {
+    const url = new URL(`https://graph.instagram.com/v21.0/${containerId}`);
+    url.searchParams.set("fields", "status_code");
+    url.searchParams.set("access_token", accessToken);
+
+    const response = await fetch(url.toString());
+    const data = (await response.json()) as IInstagramContainerStatusResponse;
+
+    if (!response.ok || !data.status_code) {
+      throw new AppError(
+        data.error?.message ?? "Falha ao verificar status do container de mídia",
+        502,
+        "instagram_media_container_status_failed",
+      );
+    }
+
+    return data.status_code as InstagramContainerStatusCode;
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   private async publishContainer(
