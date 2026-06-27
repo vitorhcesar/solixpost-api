@@ -1,0 +1,20 @@
+# Dependências e artefatos locais
+node_modules/
+generated/
+bun.lock.bak
+
+# Git e ferramentas de desenvolvimento
+.git/
+.gitignore
+.cursor/
+
+# Variáveis de ambiente locais
+.env
+.env.*
+!.env.example
+
+# Arquivos de build e editor
+*.md
+*.log
+*.tsbuildinfo
+.DS_Store

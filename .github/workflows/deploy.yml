@@ -1,0 +1,131 @@
+name: Deploy to VPS
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+# Garante que apenas um deploy rode por vez
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  VPS_PORT: ${{ secrets.VPS_PORT || '22' }}
+
+jobs:
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      # ──────────────────────────────────────────────────────────────────────
+      # 1. Checkout do código
+      # ──────────────────────────────────────────────────────────────────────
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ──────────────────────────────────────────────────────────────────────
+      # 2. Gerar arquivo .env a partir dos secrets
+      # ──────────────────────────────────────────────────────────────────────
+      # As variáveis de conexão internas (DATABASE_URL, REDIS_HOST,
+      # MINIO_ENDPOINT) devem apontar para os nomes dos containers Docker.
+      # Configure os secrets com:
+      #   DATABASE_URL  = postgresql://USER:PASS@instagram-posts-auto-postgres:5432/DB?schema=public
+      #   REDIS_HOST    = instagram-posts-auto-redis
+      #   MINIO_ENDPOINT = instagram-posts-auto-minio
+      - name: Create .env file
+        run: |
+          cat > .env << 'ENVEOF'
+          PORT=${{ secrets.PORT }}
+          NODE_ENV=production
+          DATABASE_URL=${{ secrets.DATABASE_URL }}
+          BETTER_AUTH_SECRET=${{ secrets.BETTER_AUTH_SECRET }}
+          BETTER_AUTH_URL=${{ secrets.BETTER_AUTH_URL }}
+          CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}
+          INSTAGRAM_APP_ID=${{ secrets.INSTAGRAM_APP_ID }}
+          INSTAGRAM_APP_SECRET=${{ secrets.INSTAGRAM_APP_SECRET }}
+          INSTAGRAM_REDIRECT_URI=${{ secrets.INSTAGRAM_REDIRECT_URI }}
+          INSTAGRAM_OAUTH_SCOPES=${{ secrets.INSTAGRAM_OAUTH_SCOPES }}
+          PUBLIC_API_URL=${{ secrets.PUBLIC_API_URL }}
+          MINIO_ENDPOINT=${{ secrets.MINIO_ENDPOINT }}
+          MINIO_PORT=${{ secrets.MINIO_PORT }}
+          MINIO_ACCESS_KEY=${{ secrets.MINIO_ACCESS_KEY }}
+          MINIO_SECRET_KEY=${{ secrets.MINIO_SECRET_KEY }}
+          MINIO_BUCKET=${{ secrets.MINIO_BUCKET }}
+          MINIO_USE_SSL=${{ secrets.MINIO_USE_SSL }}
+          REDIS_HOST=${{ secrets.REDIS_HOST }}
+          REDIS_PORT=${{ secrets.REDIS_PORT }}
+          POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+          ENVEOF
+
+      # ──────────────────────────────────────────────────────────────────────
+      # 3. Configurar agente SSH
+      # ──────────────────────────────────────────────────────────────────────
+      - name: Setup SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+
+      - name: Add VPS to known hosts
+        run: |
+          ssh-keyscan -p "${{ env.VPS_PORT }}" -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts
+
+      # ──────────────────────────────────────────────────────────────────────
+      # 4. Criar diretório de deploy na VPS (idempotente)
+      # ──────────────────────────────────────────────────────────────────────
+      - name: Ensure deploy directory exists
+        run: |
+          ssh -p "${{ env.VPS_PORT }}" \
+            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
+            "mkdir -p ${{ secrets.VPS_DEPLOY_PATH }}"
+
+      # ──────────────────────────────────────────────────────────────────────
+      # 5. Sincronizar código-fonte para a VPS via rsync
+      #    Exclui: node_modules, .git, .env, generated (recriado pelo Docker)
+      # ──────────────────────────────────────────────────────────────────────
+      - name: Sync source files to VPS
+        run: |
+          rsync -az --delete \
+            --exclude='.git/' \
+            --exclude='node_modules/' \
+            --exclude='.env' \
+            --exclude='generated/' \
+            --exclude='.cursor/' \
+            -e "ssh -p ${{ env.VPS_PORT }}" \
+            ./ "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ secrets.VPS_DEPLOY_PATH }}/"
+
+      # ──────────────────────────────────────────────────────────────────────
+      # 6. Copiar .env gerado para a VPS
+      # ──────────────────────────────────────────────────────────────────────
+      - name: Copy .env to VPS
+        run: |
+          scp -P "${{ env.VPS_PORT }}" .env \
+            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ secrets.VPS_DEPLOY_PATH }}/.env"
+
+      # ──────────────────────────────────────────────────────────────────────
+      # 7. Build e deploy com Docker Compose
+      # ──────────────────────────────────────────────────────────────────────
+      - name: Deploy with Docker Compose
+        run: |
+          ssh -p "${{ env.VPS_PORT }}" \
+            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
+            "cd ${{ secrets.VPS_DEPLOY_PATH }} && \
+             docker compose -f docker-compose.prod.yml pull --ignore-buildable && \
+             docker compose -f docker-compose.prod.yml up -d --build --remove-orphans && \
+             docker image prune -f"
+
+      # ──────────────────────────────────────────────────────────────────────
+      # 8. Verificar saúde da aplicação
+      # ──────────────────────────────────────────────────────────────────────
+      - name: Health check
+        run: |
+          echo "Aguardando aplicação inicializar..."
+          sleep 15
+          ssh -p "${{ env.VPS_PORT }}" \
+            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
+            "docker inspect --format='{{.State.Health.Status}}' instagram-posts-auto-app"
