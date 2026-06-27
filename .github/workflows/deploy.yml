@@ -19,6 +19,7 @@ jobs:
     name: Deploy to VPS
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    environment: PROD_ENV
 
     steps:
       # ──────────────────────────────────────────────────────────────────────
