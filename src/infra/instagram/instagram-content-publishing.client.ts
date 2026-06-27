@@ -25,6 +25,13 @@ interface IInstagramContainerStatusResponse {
   };
 }
 
+interface IInstagramPermalinkResponse {
+  permalink?: string;
+  error?: {
+    message?: string;
+  };
+}
+
 type InstagramContainerStatusCode =
   | "EXPIRED"
   | "ERROR"
@@ -208,8 +215,29 @@ export class InstagramContentPublishingClient {
       );
     }
 
+    const permalink = await this.fetchPermalink(data.id, input.accessToken);
+
     return {
       instagramMediaId: data.id,
+      instagramPermalink: permalink,
     };
+  }
+
+  private async fetchPermalink(
+    mediaId: string,
+    accessToken: string,
+  ): Promise<string | null> {
+    try {
+      const url = new URL(`https://graph.instagram.com/v21.0/${mediaId}`);
+      url.searchParams.set("fields", "permalink");
+      url.searchParams.set("access_token", accessToken);
+
+      const response = await fetch(url.toString());
+      const data = (await response.json()) as IInstagramPermalinkResponse;
+
+      return data.permalink ?? null;
+    } catch {
+      return null;
+    }
   }
 }

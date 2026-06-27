@@ -7,6 +7,7 @@ export interface IPublishMediaInput {
 
 export interface IPublishMediaResult {
   instagramMediaId: string;
+  instagramPermalink: string | null;
 }
 
 export interface IInstagramContentPublishingService {

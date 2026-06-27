@@ -16,6 +16,7 @@ export function mapPublicationToDto(publication: Publication): IPublicationDto {
       instagramConnectedAccountId: target.instagramConnectedAccountId,
       status: target.status,
       instagramMediaId: target.instagramMediaId,
+      instagramPermalink: target.instagramPermalink,
       errorMessage: target.errorMessage,
     })),
     createdAt: data.createdAt.toISOString(),

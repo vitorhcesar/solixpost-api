@@ -7,7 +7,9 @@ import { UserRoutes } from "@/http/routes/api/v1/user.routes";
 import { InstagramRoutes } from "@/http/routes/api/v1/instagram.routes";
 import { InstagramCallbackRoutes } from "@/http/routes/api/v1/instagram-callback.routes";
 import { PublicationRoutes } from "@/http/routes/api/v1/publication.routes";
+import { buildPublicObjectRoutes } from "@/http/routes/api/v1/public-object.routes";
 import { registerGlobalApiErrorHandler } from "@/http/utils/register-global-api-error-handler";
+import { PublicationWorker } from "@/infra/queue/publication-queue";
 
 export class AppService {
   private readonly env = EnvService.getInstance();
@@ -15,6 +17,8 @@ export class AppService {
 
   start(): void {
     const app = this.serverClient.getApp();
+
+    const publicationWorker = new PublicationWorker();
 
     app
       .use(
@@ -38,6 +42,8 @@ export class AppService {
         }),
       );
 
+    app.use(buildPublicObjectRoutes());
+
     app.group("/api/v1", (group) =>
       group
         .use(new HealthRoutes(this.serverClient).build())
@@ -53,6 +59,17 @@ export class AppService {
       console.log(`Server running at http://${hostname}:${port}`);
       console.log(`Swagger available at http://${hostname}:${port}/swagger`);
       console.log(`Better Auth available at http://${hostname}:${port}/api/auth`);
+      console.log(`Publication worker started`);
+    });
+
+    process.on("SIGTERM", async () => {
+      await publicationWorker.close();
+      process.exit(0);
+    });
+
+    process.on("SIGINT", async () => {
+      await publicationWorker.close();
+      process.exit(0);
     });
   }
 }

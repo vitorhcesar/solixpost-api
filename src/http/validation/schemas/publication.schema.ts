@@ -9,7 +9,7 @@ export const createPublicationBodySchema = z
     type: z.nativeEnum(PublicationTypeEnum),
     destinationScope: z.nativeEnum(PublicationDestinationScopeEnum),
     caption: z.string().max(2200).optional().nullable(),
-    mediaUrl: z.string().url(),
+    objectKey: z.string().min(1),
     instagramConnectedAccountIds: z.array(z.string().min(1)).optional(),
   })
   .superRefine((data, context) => {

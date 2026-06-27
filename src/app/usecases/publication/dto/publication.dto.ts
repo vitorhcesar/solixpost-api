@@ -3,6 +3,7 @@ export interface IPublicationTargetDto {
   instagramConnectedAccountId: string;
   status: string;
   instagramMediaId: string | null;
+  instagramPermalink: string | null;
   errorMessage: string | null;
 }
 

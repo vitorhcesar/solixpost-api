@@ -26,6 +26,7 @@ export class PublicationMapper {
       destinationScope: PublicationMapper.toDestinationScope(row.destinationScope),
       caption: row.caption,
       mediaUrl: row.mediaUrl,
+      objectKey: row.objectKey,
       status: PublicationMapper.toPublicationStatus(row.status),
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
@@ -35,6 +36,7 @@ export class PublicationMapper {
         instagramConnectedAccountId: target.instagramConnectedAccountId,
         status: PublicationMapper.toTargetStatus(target.status),
         instagramMediaId: target.instagramMediaId,
+        instagramPermalink: target.instagramPermalink,
         errorMessage: target.errorMessage,
         createdAt: target.createdAt,
         updatedAt: target.updatedAt,
@@ -51,12 +53,14 @@ export class PublicationMapper {
       destinationScope: data.destinationScope,
       caption: data.caption,
       mediaUrl: data.mediaUrl,
+      objectKey: data.objectKey,
       status: data.status,
       targets: {
         create: data.targets.map((target) => ({
           instagramConnectedAccountId: target.instagramConnectedAccountId,
           status: target.status,
           instagramMediaId: target.instagramMediaId,
+          instagramPermalink: target.instagramPermalink,
           errorMessage: target.errorMessage,
         })),
       },
@@ -68,6 +72,7 @@ export class PublicationMapper {
 
     return {
       status: data.status,
+      objectKey: data.objectKey,
       updatedAt: data.updatedAt,
       targets: {
         upsert: data.targets.map((target) => ({
@@ -76,11 +81,13 @@ export class PublicationMapper {
             instagramConnectedAccountId: target.instagramConnectedAccountId,
             status: target.status,
             instagramMediaId: target.instagramMediaId,
+            instagramPermalink: target.instagramPermalink,
             errorMessage: target.errorMessage,
           },
           update: {
             status: target.status,
             instagramMediaId: target.instagramMediaId,
+            instagramPermalink: target.instagramPermalink,
             errorMessage: target.errorMessage,
             updatedAt: target.updatedAt,
           },
@@ -95,6 +102,7 @@ export class PublicationMapper {
     return {
       status: data.status,
       instagramMediaId: data.instagramMediaId,
+      instagramPermalink: data.instagramPermalink,
       errorMessage: data.errorMessage,
       updatedAt: data.updatedAt,
     };

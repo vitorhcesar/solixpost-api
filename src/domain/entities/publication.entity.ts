@@ -11,6 +11,7 @@ export interface IPublicationTargetProps {
   instagramConnectedAccountId: string;
   status: PublicationTargetStatusEnum;
   instagramMediaId: string | null;
+  instagramPermalink: string | null;
   errorMessage: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -23,6 +24,7 @@ export interface IPublicationProps {
   destinationScope: PublicationDestinationScopeEnum;
   caption: string | null;
   mediaUrl: string;
+  objectKey: string | null;
   status: PublicationStatusEnum;
   createdAt: Date;
   updatedAt: Date;
@@ -35,6 +37,7 @@ export interface IPublicationCreateProps {
   destinationScope: PublicationDestinationScopeEnum;
   caption?: string | null;
   mediaUrl: string;
+  objectKey: string | null;
   instagramConnectedAccountIds: string[];
 }
 
@@ -57,6 +60,7 @@ export class PublicationTarget {
       instagramConnectedAccountId: props.instagramConnectedAccountId,
       status: PublicationTargetStatusEnum.PENDING,
       instagramMediaId: null,
+      instagramPermalink: null,
       errorMessage: null,
       createdAt: now,
       updatedAt: now,
@@ -87,6 +91,10 @@ export class PublicationTarget {
     return this.props.instagramMediaId;
   }
 
+  get instagramPermalink(): string | null {
+    return this.props.instagramPermalink;
+  }
+
   get errorMessage(): string | null {
     return this.props.errorMessage;
   }
@@ -96,9 +104,10 @@ export class PublicationTarget {
     this.props.updatedAt = new Date();
   }
 
-  markAsSuccess(instagramMediaId: string): void {
+  markAsSuccess(instagramMediaId: string, instagramPermalink: string | null): void {
     this.props.status = PublicationTargetStatusEnum.SUCCESS;
     this.props.instagramMediaId = instagramMediaId;
+    this.props.instagramPermalink = instagramPermalink;
     this.props.errorMessage = null;
     this.props.updatedAt = new Date();
   }
@@ -139,6 +148,7 @@ export class Publication {
       destinationScope: props.destinationScope,
       caption: props.caption ?? null,
       mediaUrl: props.mediaUrl,
+      objectKey: props.objectKey,
       status: PublicationStatusEnum.PENDING,
       createdAt: now,
       updatedAt: now,
@@ -172,6 +182,10 @@ export class Publication {
 
   get mediaUrl(): string {
     return this.props.mediaUrl;
+  }
+
+  get objectKey(): string | null {
+    return this.props.objectKey;
   }
 
   get status(): PublicationStatusEnum {
@@ -208,6 +222,11 @@ export class Publication {
       this.props.status = PublicationStatusEnum.FAILED;
     }
 
+    this.props.updatedAt = new Date();
+  }
+
+  clearObjectKey(): void {
+    this.props.objectKey = null;
     this.props.updatedAt = new Date();
   }
 

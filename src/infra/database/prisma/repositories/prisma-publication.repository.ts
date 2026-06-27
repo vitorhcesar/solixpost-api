@@ -36,6 +36,7 @@ export class PrismaPublicationRepository
         where: { id: publication.id },
         data: {
           status: data.status,
+          objectKey: data.objectKey,
           updatedAt: data.updatedAt,
         },
       });
