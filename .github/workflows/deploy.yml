@@ -65,20 +65,24 @@ jobs:
           ENVEOF
 
       # ──────────────────────────────────────────────────────────────────────
-      # 3. Configurar agente SSH
+      # 3. Carregar a chave SSH via ssh-agent (garante formatação correta)
       # ──────────────────────────────────────────────────────────────────────
       - name: Setup SSH agent
-        uses: webfactory/ssh-agent@v0.9.0
+        uses: webfactory/ssh-agent@v0.9.1
         with:
           ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
 
+      # ──────────────────────────────────────────────────────────────────────
+      # 4. Registrar a chave do host da VPS no known_hosts
+      # ──────────────────────────────────────────────────────────────────────
       - name: Add VPS to known hosts
         run: |
           ssh-keyscan -p "${{ env.VPS_PORT }}" -T 10 -t rsa,ecdsa,ed25519 \
             "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
 
       # ──────────────────────────────────────────────────────────────────────
-      # 4. Criar diretório de deploy na VPS (idempotente)
+      # 5. Criar diretório de deploy na VPS (idempotente)
       # ──────────────────────────────────────────────────────────────────────
       - name: Ensure deploy directory exists
         run: |
@@ -87,7 +91,7 @@ jobs:
             "mkdir -p ${{ secrets.VPS_DEPLOY_PATH }}"
 
       # ──────────────────────────────────────────────────────────────────────
-      # 5. Sincronizar código-fonte para a VPS via rsync
+      # 6. Sincronizar código-fonte para a VPS via rsync
       #    Exclui: node_modules, .git, .env, generated (recriado pelo Docker)
       # ──────────────────────────────────────────────────────────────────────
       - name: Sync source files to VPS
@@ -102,7 +106,7 @@ jobs:
             ./ "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ secrets.VPS_DEPLOY_PATH }}/"
 
       # ──────────────────────────────────────────────────────────────────────
-      # 6. Copiar .env gerado para a VPS
+      # 7. Copiar .env gerado para a VPS
       # ──────────────────────────────────────────────────────────────────────
       - name: Copy .env to VPS
         run: |
@@ -110,7 +114,7 @@ jobs:
             "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ secrets.VPS_DEPLOY_PATH }}/.env"
 
       # ──────────────────────────────────────────────────────────────────────
-      # 7. Build e deploy com Docker Compose
+      # 8. Build e deploy com Docker Compose
       # ──────────────────────────────────────────────────────────────────────
       - name: Deploy with Docker Compose
         run: |
@@ -122,7 +126,7 @@ jobs:
              docker image prune -f"
 
       # ──────────────────────────────────────────────────────────────────────
-      # 8. Verificar saúde da aplicação
+      # 9. Verificar saúde da aplicação
       # ──────────────────────────────────────────────────────────────────────
       - name: Health check
         run: |
