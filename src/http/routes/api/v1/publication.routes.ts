@@ -1,6 +1,7 @@
 import {
   CreateAndPublishPublicationUseCase,
   GetPublicationUseCase,
+  ListPublicationsUseCase,
 } from "@/app/usecases/publication/create-and-publish-publication.usecase";
 import { getAuthContext } from "@/http/client";
 import { BaseHttpRoute, type THttpRoute } from "@/http/routes/base-http-route";
@@ -40,9 +41,14 @@ export class PublicationRoutes extends BaseHttpRoute {
         publicationQueue,
         env,
       );
-    const getPublicationUseCase = new GetPublicationUseCase(
-      publicationRepository,
-    );
+    const getPublicationUseCase = new GetPublicationUseCase(publicationRepository);
+    const listPublicationsUseCase = new ListPublicationsUseCase(publicationRepository);
+
+    route.get("/publications", async (context) => {
+      const { authUserId } = getAuthContext(context);
+      const publications = await listPublicationsUseCase.execute(authUserId!);
+      return this.successResponse("OK", publications, 200);
+    });
 
     route.post("/publications/upload-media", async (context) => {
       const { authUserId } = getAuthContext(context);

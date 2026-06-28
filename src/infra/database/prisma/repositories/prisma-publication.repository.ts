@@ -28,6 +28,16 @@ export class PrismaPublicationRepository
     return row ? PublicationMapper.toDomain(row) : null;
   }
 
+  async findAllByUserId(userId: string): Promise<Publication[]> {
+    const rows = await this.getPrismaClient().publication.findMany({
+      where: { userId },
+      include: { targets: true },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return rows.map(PublicationMapper.toDomain);
+  }
+
   async save(publication: Publication): Promise<Publication> {
     if (publication.id) {
       const data = publication.toObject();

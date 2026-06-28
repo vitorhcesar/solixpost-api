@@ -120,3 +120,12 @@ export class GetPublicationUseCase {
     return mapPublicationToDto(publication);
   }
 }
+
+export class ListPublicationsUseCase {
+  constructor(private readonly publicationRepository: IPublicationRepository) {}
+
+  async execute(authUserId: string): Promise<IPublicationDto[]> {
+    const publications = await this.publicationRepository.findAllByUserId(authUserId);
+    return publications.map(mapPublicationToDto);
+  }
+}
