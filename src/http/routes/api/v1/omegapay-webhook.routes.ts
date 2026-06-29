@@ -1,7 +1,9 @@
 import { BaseHttpRoute, type THttpRoute } from "@/http/routes/base-http-route";
 import { AppError } from "@/http/services/app/errors/app.error";
 import { ReceiveOmegaPayWebhookUseCase } from "@/app/usecases/omegapay/receive-omegapay-webhook.usecase";
+import { ProcessWalletRechargeFromWebhookUseCase } from "@/app/usecases/wallet/process-wallet-recharge-from-webhook.usecase";
 import { PrismaOmegaPayWebhookRepository } from "@/infra/database/prisma/repositories/prisma-omegapay-webhook.repository";
+import { PrismaWalletRepository } from "@/infra/database/prisma/repositories/prisma-wallet.repository";
 import { omegaPayWebhookBodySchema } from "@/http/validation/schemas/omegapay-webhook.schema";
 
 export class OmegaPayWebhookRoutes extends BaseHttpRoute {
@@ -10,6 +12,7 @@ export class OmegaPayWebhookRoutes extends BaseHttpRoute {
 
     const receiveOmegaPayWebhookUseCase = new ReceiveOmegaPayWebhookUseCase(
       new PrismaOmegaPayWebhookRepository(),
+      new ProcessWalletRechargeFromWebhookUseCase(new PrismaWalletRepository()),
     );
 
     route.post("/webhooks/omegapay", async ({ body }) => {

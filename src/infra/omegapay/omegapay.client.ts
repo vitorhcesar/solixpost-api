@@ -30,7 +30,6 @@ export class OmegaPayClient implements IOmegaPayService {
       "POST",
       "/gateway/pix/receive",
       input,
-      201,
     );
   }
 
@@ -38,7 +37,6 @@ export class OmegaPayClient implements IOmegaPayService {
     method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
     path: string,
     body?: unknown,
-    expectedStatus = 200,
   ): Promise<T> {
     const response = await fetch(`${OMEGAPAY_API_BASE_URL}${path}`, {
       method,
@@ -59,15 +57,6 @@ export class OmegaPayClient implements IOmegaPayService {
         response.status,
         data.errorCode ?? "omegapay_request_failed",
         data.details ? { details: data.details } : undefined,
-      );
-    }
-
-    if (response.status !== expectedStatus) {
-      throw new AppError(
-        "Resposta inesperada da OmegaPay",
-        502,
-        "omegapay_unexpected_status",
-        { status: response.status, expectedStatus },
       );
     }
 

@@ -1,4 +1,5 @@
 import type { IUserRepository } from "@/domain/repositories/user.repository";
+import type { IWalletRepository } from "@/domain/repositories/wallet.repository";
 import { mapUserToDto } from "@/app/usecases/user/map-user-to-dto.util";
 import type { IAdminUserListDto } from "@/app/usecases/admin/dto/admin-user.dto";
 
@@ -9,7 +10,10 @@ export interface IListAdminUsersInput {
 }
 
 export class ListAdminUsersUseCase {
-  constructor(private readonly userRepository: IUserRepository) {}
+  constructor(
+    private readonly userRepository: IUserRepository,
+    private readonly walletRepository: IWalletRepository,
+  ) {}
 
   async execute(input: IListAdminUsersInput = {}): Promise<IAdminUserListDto> {
     const page = Math.max(1, input.page ?? 1);
@@ -24,12 +28,15 @@ export class ListAdminUsersUseCase {
 
     const usersWithCounts = await Promise.all(
       users.map(async (user) => {
-        const instagramAccountsCount =
-          await this.userRepository.countInstagramAccountsByUserId(user.id);
+        const [instagramAccountsCount, wallet] = await Promise.all([
+          this.userRepository.countInstagramAccountsByUserId(user.id),
+          this.walletRepository.getOrCreateByUserId(user.id),
+        ]);
 
         return {
           ...mapUserToDto(user),
           instagramAccountsCount,
+          walletBalance: wallet.balance,
         };
       }),
     );
