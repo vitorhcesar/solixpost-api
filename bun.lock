@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "instagram-posts-auto-backend",
+      "name": "megafeed-backend",
       "dependencies": {
         "@elysiajs/cors": "^1.3.0",
         "@elysiajs/swagger": "^1.3.0",

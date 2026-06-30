@@ -1,31 +1,31 @@
-name: instagram-posts-auto
+name: megafeed
 
 services:
-  instagram-posts-postgres:
+  megafeed-postgres:
     image: postgres:16-alpine
-    container_name: instagram-posts-auto-postgres
+    container_name: megafeed-postgres
     restart: unless-stopped
     ports:
       - "5433:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: instagram_posts_auto
+      POSTGRES_DB: megafeed
     volumes:
-      - instagram-posts-auto-postgres-data:/var/lib/postgresql/data
+      - megafeed-postgres-data:/var/lib/postgresql/data
 
-  instagram-posts-redis:
+  megafeed-redis:
     image: redis:7-alpine
-    container_name: instagram-posts-auto-redis
+    container_name: megafeed-redis
     restart: unless-stopped
     ports:
       - "6379:6379"
     volumes:
-      - instagram-posts-auto-redis-data:/data
+      - megafeed-redis-data:/data
 
-  instagram-posts-minio:
+  megafeed-minio:
     image: minio/minio:RELEASE.2024-01-16T16-07-38Z
-    container_name: instagram-posts-auto-minio
+    container_name: megafeed-minio
     restart: unless-stopped
     ports:
       - "9000:9000"
@@ -35,9 +35,9 @@ services:
       MINIO_ROOT_PASSWORD: minioadmin
     command: server /data --console-address ":9001"
     volumes:
-      - instagram-posts-auto-minio-data:/data
+      - megafeed-minio-data:/data
 
 volumes:
-  instagram-posts-auto-postgres-data:
-  instagram-posts-auto-redis-data:
-  instagram-posts-auto-minio-data:
+  megafeed-postgres-data:
+  megafeed-redis-data:
+  megafeed-minio-data:

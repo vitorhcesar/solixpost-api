@@ -1,66 +1,66 @@
-name: instagram-posts-auto
+name: megafeed
 
 # Compose de produção. Variáveis de ambiente vêm do arquivo .env na mesma pasta.
 #
 # Conexões internas (app → banco, redis, minio) usam os nomes dos containers.
 # Configure os secrets do GitHub com os valores corretos para produção:
 #
-#   DATABASE_URL = postgresql://USER:PASS@instagram-posts-auto-postgres:5432/DB?schema=public
-#   REDIS_HOST   = instagram-posts-auto-redis
-#   MINIO_ENDPOINT = instagram-posts-auto-minio
+#   DATABASE_URL = postgresql://USER:PASS@megafeed-postgres:5432/DB?schema=public
+#   REDIS_HOST   = megafeed-redis
+#   MINIO_ENDPOINT = megafeed-minio
 #
 # Apenas a porta da aplicação (PORT) é exposta para o host/proxy reverso.
 
 services:
   # ─── Aplicação ──────────────────────────────────────────────────────────────
-  instagram-posts-app:
+  megafeed-app:
     build:
       context: .
       dockerfile: Dockerfile
-    image: instagram-posts-auto-app
-    container_name: instagram-posts-auto-app
+    image: megafeed-app
+    container_name: megafeed-app
     restart: unless-stopped
     ports:
       - "${PORT:-8080}:${PORT:-8080}"
     env_file:
       - .env
     depends_on:
-      instagram-posts-postgres:
+      megafeed-postgres:
         condition: service_healthy
-      instagram-posts-redis:
+      megafeed-redis:
         condition: service_healthy
-      instagram-posts-minio:
+      megafeed-minio:
         condition: service_started
     networks:
-      - instagram-posts-auto-network
+      - megafeed-network
 
   # ─── PostgreSQL ──────────────────────────────────────────────────────────────
-  instagram-posts-postgres:
+  megafeed-postgres:
     image: postgres:16-alpine
-    container_name: instagram-posts-auto-postgres
+    container_name: megafeed-postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-instagram_posts_auto}
+      POSTGRES_DB: ${POSTGRES_DB:-megafeed}
     volumes:
-      - instagram-posts-auto-postgres-data:/var/lib/postgresql/data
+      - megafeed-postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-instagram_posts_auto}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-megafeed}"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 20s
     networks:
-      - instagram-posts-auto-network
+      - megafeed-network
 
   # ─── Redis ───────────────────────────────────────────────────────────────────
-  instagram-posts-redis:
+  megafeed-redis:
     image: redis:7-alpine
-    container_name: instagram-posts-auto-redis
+    container_name: megafeed-redis
     restart: unless-stopped
     volumes:
-      - instagram-posts-auto-redis-data:/data
+      - megafeed-redis-data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -68,30 +68,30 @@ services:
       retries: 5
       start_period: 10s
     networks:
-      - instagram-posts-auto-network
+      - megafeed-network
 
   # ─── MinIO ───────────────────────────────────────────────────────────────────
-  instagram-posts-minio:
+  megafeed-minio:
     image: minio/minio:RELEASE.2024-01-16T16-07-38Z
-    container_name: instagram-posts-auto-minio
+    container_name: megafeed-minio
     restart: unless-stopped
     environment:
       MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
       MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
     command: server /data --console-address ":9001"
     volumes:
-      - instagram-posts-auto-minio-data:/data
+      - megafeed-minio-data:/data
     # Console de administração (opcional — remova se não precisar de acesso externo)
     ports:
       - "9001:9001"
     networks:
-      - instagram-posts-auto-network
+      - megafeed-network
 
 networks:
-  instagram-posts-auto-network:
+  megafeed-network:
     driver: bridge
 
 volumes:
-  instagram-posts-auto-postgres-data:
-  instagram-posts-auto-redis-data:
-  instagram-posts-auto-minio-data:
+  megafeed-postgres-data:
+  megafeed-redis-data:
+  megafeed-minio-data:

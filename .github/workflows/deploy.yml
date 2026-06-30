@@ -34,9 +34,9 @@ jobs:
       # As variáveis de conexão internas (DATABASE_URL, REDIS_HOST,
       # MINIO_ENDPOINT) devem apontar para os nomes dos containers Docker.
       # Configure os secrets com:
-      #   DATABASE_URL  = postgresql://USER:PASS@instagram-posts-auto-postgres:5432/DB?schema=public
-      #   REDIS_HOST    = instagram-posts-auto-redis
-      #   MINIO_ENDPOINT = instagram-posts-auto-minio
+      #   DATABASE_URL  = postgresql://USER:PASS@megafeed-postgres:5432/DB?schema=public
+      #   REDIS_HOST    = megafeed-redis
+      #   MINIO_ENDPOINT = megafeed-minio
       - name: Create .env file
         run: |
           cat > .env << 'ENVEOF'
@@ -157,4 +157,4 @@ jobs:
             -o StrictHostKeyChecking=yes \
             -o BatchMode=yes \
             "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
-            "docker inspect --format='{{.State.Health.Status}}' instagram-posts-auto-app"
+            "docker inspect --format='{{.State.Health.Status}}' megafeed-app"

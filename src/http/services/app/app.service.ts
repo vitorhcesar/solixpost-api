@@ -38,7 +38,7 @@ export class AppService {
         swagger({
           documentation: {
             info: {
-              title: "Instagram Posts Auto API",
+              title: "Mega Feed API",
               version: "0.1.0",
               description:
                 "API para publicação centralizada de posts e stories no Instagram.",
