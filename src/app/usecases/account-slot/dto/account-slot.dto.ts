@@ -26,9 +26,9 @@ export interface IAccountSlotDto {
 
 export interface IAccountSlotPricingDto {
   unitPrice: number;
-  comboDiscountRate: number;
   combos: Array<{
     quantity: number;
+    discountRate: number;
     unitPrice: number;
     total: number;
     savings: number;

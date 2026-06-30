@@ -1,7 +1,8 @@
 import {
-  SLOT_COMBO_DISCOUNT_RATE,
-  SLOT_COMBO_QUANTITIES,
+  isSlotComboQuantity,
+  SLOT_COMBO_CONFIG,
   SLOT_PRICE_BRL,
+  getSlotComboDiscountRate,
   type SlotComboQuantity,
 } from "@/domain/enums/account-slot.enum";
 
@@ -10,11 +11,12 @@ export function calculateSlotPurchaseTotal(input: {
   combo?: SlotComboQuantity;
 }): { quantity: number; unitPrice: number; total: number; hasDiscount: boolean } {
   if (input.combo !== undefined) {
-    if (!SLOT_COMBO_QUANTITIES.includes(input.combo)) {
+    if (!isSlotComboQuantity(input.combo)) {
       throw new Error("Invalid combo quantity");
     }
 
-    const unitPrice = Number((SLOT_PRICE_BRL * (1 - SLOT_COMBO_DISCOUNT_RATE)).toFixed(2));
+    const discountRate = getSlotComboDiscountRate(input.combo);
+    const unitPrice = Number((SLOT_PRICE_BRL * (1 - discountRate)).toFixed(2));
     const total = Number((input.combo * unitPrice).toFixed(2));
 
     return {
@@ -44,12 +46,12 @@ export function calculateSlotPurchaseTotal(input: {
 export function getSlotPricingCatalog() {
   return {
     unitPrice: SLOT_PRICE_BRL,
-    comboDiscountRate: SLOT_COMBO_DISCOUNT_RATE,
-    combos: SLOT_COMBO_QUANTITIES.map((quantity) => {
+    combos: SLOT_COMBO_CONFIG.map(({ quantity, discountRate }) => {
       const pricing = calculateSlotPurchaseTotal({ combo: quantity });
 
       return {
         quantity,
+        discountRate,
         unitPrice: pricing.unitPrice,
         total: pricing.total,
         savings: Number((quantity * SLOT_PRICE_BRL - pricing.total).toFixed(2)),

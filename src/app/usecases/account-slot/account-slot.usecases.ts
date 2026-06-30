@@ -6,7 +6,7 @@ import {
 } from "@/domain/constants/account-slot-pricing.util";
 import {
   AccountSlotStatusEnum,
-  SLOT_COMBO_QUANTITIES,
+  isSlotComboQuantity,
   SLOT_PRICE_BRL,
   type SlotComboQuantity,
 } from "@/domain/enums/account-slot.enum";
@@ -64,7 +64,7 @@ export class PurchaseAccountSlotsUseCase {
       );
     }
 
-    if (input.combo !== undefined && !SLOT_COMBO_QUANTITIES.includes(input.combo)) {
+    if (input.combo !== undefined && !isSlotComboQuantity(input.combo)) {
       throw new AppError("Combo inválido", 400, "slot_purchase_invalid_combo");
     }
 
