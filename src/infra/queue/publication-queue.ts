@@ -6,6 +6,7 @@ import { InstagramContentPublishingService } from "@/infra/instagram/instagram-c
 import { InstagramOAuthClient } from "@/infra/instagram/instagram-oauth.client";
 import { MinioTemporaryPublicationMediaStorage } from "@/infra/object-storage/minio-temporary-publication-media.storage";
 import { PublicationTypeEnum } from "@/domain/enums/instagram.enum";
+import { isInstagramAccountAuthFailure } from "@/domain/instagram/instagram-account-health.util";
 import { AppError } from "@/http/services/app/errors/app.error";
 
 export const PUBLICATION_QUEUE_NAME = "publication";
@@ -102,17 +103,23 @@ export class PublicationWorker {
         let accessToken = account.accessToken;
 
         if (account.isTokenExpired()) {
-          const refreshed = await oauthService.refreshLongLivedToken(accessToken);
-          accessToken = refreshed.accessToken;
-          account.updateOAuthData({
-            accessToken,
-            tokenExpiresAt: new Date(Date.now() + refreshed.expiresIn * 1000),
-            scopes: refreshed.scopes.length ? refreshed.scopes : account.scopes,
-            username: account.username,
-            displayName: account.displayName,
-            profilePictureUrl: account.profilePictureUrl,
-          });
-          await accountRepository.save(account);
+          try {
+            const refreshed = await oauthService.refreshLongLivedToken(accessToken);
+            accessToken = refreshed.accessToken;
+            account.updateOAuthData({
+              accessToken,
+              tokenExpiresAt: new Date(Date.now() + refreshed.expiresIn * 1000),
+              scopes: refreshed.scopes.length ? refreshed.scopes : account.scopes,
+              username: account.username,
+              displayName: account.displayName,
+              profilePictureUrl: account.profilePictureUrl,
+            });
+            await accountRepository.save(account);
+          } catch (refreshError) {
+            account.markAsExpired();
+            await accountRepository.save(account);
+            throw refreshError;
+          }
         }
 
         const publishInput = {
@@ -137,6 +144,11 @@ export class PublicationWorker {
               : "Falha ao publicar no Instagram";
 
         target.markAsFailed(message);
+
+        if (isInstagramAccountAuthFailure(error)) {
+          account.markAsExpired();
+          await accountRepository.save(account);
+        }
       }
     }
 

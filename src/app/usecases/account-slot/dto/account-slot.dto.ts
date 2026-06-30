@@ -1,9 +1,18 @@
+export type InstagramAccountIssueType =
+  | "token_expired"
+  | "account_expired"
+  | "disconnected";
+
 export interface IAccountSlotAccountDto {
   id: string;
   username: string;
   displayName: string | null;
   profilePictureUrl: string | null;
   status: string;
+  tokenExpiresAt: string;
+  isTokenExpired: boolean;
+  hasConnectionIssue: boolean;
+  issueType: InstagramAccountIssueType | null;
 }
 
 export interface IAccountSlotDto {

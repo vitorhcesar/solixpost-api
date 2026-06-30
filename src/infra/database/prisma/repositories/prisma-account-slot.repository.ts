@@ -49,6 +49,7 @@ export class PrismaAccountSlotRepository
             displayName: true,
             profilePictureUrl: true,
             status: true,
+            tokenExpiresAt: true,
           },
         },
       },
@@ -64,6 +65,7 @@ export class PrismaAccountSlotRepository
             displayName: row.instagramConnectedAccount.displayName,
             profilePictureUrl: row.instagramConnectedAccount.profilePictureUrl,
             status: row.instagramConnectedAccount.status,
+            tokenExpiresAt: row.instagramConnectedAccount.tokenExpiresAt,
           }
         : null,
     }));
