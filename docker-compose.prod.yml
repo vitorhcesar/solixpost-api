@@ -2,11 +2,11 @@ name: megafeed
 
 # Compose de produção. Variáveis de ambiente vêm do arquivo .env na mesma pasta.
 #
-# Conexões internas (app → banco, redis, minio) usam os nomes dos containers.
-# Configure os secrets do GitHub com os valores corretos para produção:
+# Domínio público: https://app.solixpost.com.br (frontend) / https://api.solixpost.com.br (API)
 #
-#   DATABASE_URL = postgresql://USER:PASS@megafeed-postgres:5432/DB?schema=public
-#   REDIS_HOST   = megafeed-redis
+# Conexões internas (app → banco, redis, minio) usam os nomes dos containers:
+#   DATABASE_URL   = postgresql://USER:PASS@megafeed-postgres:5432/DB?schema=public
+#   REDIS_HOST     = megafeed-redis
 #   MINIO_ENDPOINT = megafeed-minio
 #
 # Apenas a porta da aplicação (PORT) é exposta para o host/proxy reverso.

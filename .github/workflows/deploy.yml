@@ -31,11 +31,18 @@ jobs:
       # ──────────────────────────────────────────────────────────────────────
       # 2. Gerar arquivo .env a partir dos secrets
       # ──────────────────────────────────────────────────────────────────────
-      # As variáveis de conexão internas (DATABASE_URL, REDIS_HOST,
-      # MINIO_ENDPOINT) devem apontar para os nomes dos containers Docker.
-      # Configure os secrets com:
-      #   DATABASE_URL  = postgresql://USER:PASS@megafeed-postgres:5432/DB?schema=public
-      #   REDIS_HOST    = megafeed-redis
+      # Domínio de produção: app.solixpost.com.br (frontend) / api.solixpost.com.br (API)
+      #
+      # Secrets de URL (GitHub PROD_ENV):
+      #   CORS_ORIGIN             = https://app.solixpost.com.br
+      #   BETTER_AUTH_URL         = https://api.solixpost.com.br
+      #   PUBLIC_API_URL          = https://api.solixpost.com.br
+      #   INSTAGRAM_REDIRECT_URI  = https://api.solixpost.com.br/api/v1/instagram/connect/callback
+      #   SMTP_FROM               = noreply@solixpost.com.br
+      #
+      # Conexões internas Docker (hostnames dos containers):
+      #   DATABASE_URL   = postgresql://USER:PASS@megafeed-postgres:5432/DB?schema=public
+      #   REDIS_HOST     = megafeed-redis
       #   MINIO_ENDPOINT = megafeed-minio
       - name: Create .env file
         run: |
