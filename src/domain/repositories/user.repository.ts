@@ -13,5 +13,6 @@ export interface IUserRepository {
   findMany(params: IUserListParams): Promise<User[]>;
   count(search?: string): Promise<number>;
   updateRole(id: string, role: AppRoleEnum): Promise<User>;
+  markEmailVerified(id: string): Promise<User>;
   countInstagramAccountsByUserId(userId: string): Promise<number>;
 }

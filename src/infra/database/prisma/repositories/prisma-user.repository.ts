@@ -54,6 +54,15 @@ export class PrismaUserRepository
     return UserMapper.toDomain(row);
   }
 
+  async markEmailVerified(id: string): Promise<User> {
+    const row = await this.getPrismaClient().user.update({
+      where: { id },
+      data: { emailVerified: true },
+    });
+
+    return UserMapper.toDomain(row);
+  }
+
   async countInstagramAccountsByUserId(userId: string): Promise<number> {
     return this.getPrismaClient().instagramConnectedAccount.count({
       where: { userId },

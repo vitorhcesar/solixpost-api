@@ -31,6 +31,15 @@ const envSchema = z.object({
   REDIS_PORT: z.coerce.number().int().positive().default(6379),
   OMEGAPAY_PUBLIC_KEY: z.string().min(1).optional(),
   OMEGAPAY_SECRET_KEY: z.string().min(1).optional(),
+  SMTP_HOST: z.string().min(1),
+  SMTP_PORT: z.coerce.number().int().positive(),
+  SMTP_USERNAME: z.string().min(1),
+  SMTP_PASSWORD: z.string().min(1),
+  SMTP_FROM: z.string().email(),
+  SMTP_SECURE: z
+    .string()
+    .transform((v) => v === "true")
+    .default("true"),
 });
 
 export type TEnv = z.infer<typeof envSchema>;
@@ -166,5 +175,29 @@ export class EnvService {
     }
 
     return this.env.OMEGAPAY_SECRET_KEY;
+  }
+
+  get smtpHost(): string {
+    return this.env.SMTP_HOST;
+  }
+
+  get smtpPort(): number {
+    return this.env.SMTP_PORT;
+  }
+
+  get smtpUsername(): string {
+    return this.env.SMTP_USERNAME;
+  }
+
+  get smtpPassword(): string {
+    return this.env.SMTP_PASSWORD;
+  }
+
+  get smtpFrom(): string {
+    return this.env.SMTP_FROM;
+  }
+
+  get smtpSecure(): boolean {
+    return this.env.SMTP_SECURE;
   }
 }

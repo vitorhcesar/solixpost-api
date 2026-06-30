@@ -10,6 +10,7 @@ import { PublicationRoutes } from "@/http/routes/api/v1/publication.routes";
 import { AdminRoutes } from "@/http/routes/api/v1/admin.routes";
 import { WalletRoutes } from "@/http/routes/api/v1/wallet.routes";
 import { OmegaPayWebhookRoutes } from "@/http/routes/api/v1/omegapay-webhook.routes";
+import { EmailVerificationRoutes } from "@/http/routes/api/v1/email-verification.routes";
 import { buildPublicObjectRoutes } from "@/http/routes/api/v1/public-object.routes";
 import { registerGlobalApiErrorHandler } from "@/http/utils/register-global-api-error-handler";
 import { PublicationWorker } from "@/infra/queue/publication-queue";
@@ -53,6 +54,7 @@ export class AppService {
         .use(new InstagramCallbackRoutes(this.serverClient).build())
         .use(new OmegaPayWebhookRoutes(this.serverClient).build())
         .use(new UserRoutes(this.serverClient).build())
+        .use(new EmailVerificationRoutes(this.serverClient).build())
         .use(new InstagramRoutes(this.serverClient).build())
         .use(new PublicationRoutes(this.serverClient).build())
         .use(new WalletRoutes(this.serverClient).build())
