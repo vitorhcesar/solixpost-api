@@ -49,13 +49,20 @@ export class InstagramOAuthClient implements IInstagramOAuthService {
   async refreshLongLivedToken(
     accessToken: string,
   ): Promise<IInstagramOAuthTokens> {
-    const params = new URLSearchParams({
+    const body = new URLSearchParams({
       grant_type: "ig_refresh_token",
       access_token: accessToken,
     });
 
     const response = await fetch(
-      `https://graph.instagram.com/refresh_access_token?${params.toString()}`,
+      "https://graph.instagram.com/refresh_access_token",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body,
+      },
     );
     const data = (await response.json()) as IInstagramLongLivedTokenResponse & {
       error?: { message?: string };
@@ -115,15 +122,19 @@ export class InstagramOAuthClient implements IInstagramOAuthService {
   private async exchangeForLongLivedToken(
     shortLivedAccessToken: string,
   ): Promise<IInstagramLongLivedTokenResponse> {
-    const params = new URLSearchParams({
+    const body = new URLSearchParams({
       grant_type: "ig_exchange_token",
       client_secret: this.env.instagramAppSecret,
       access_token: shortLivedAccessToken,
     });
 
-    const response = await fetch(
-      `https://graph.instagram.com/access_token?${params.toString()}`,
-    );
+    const response = await fetch("https://graph.instagram.com/access_token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body,
+    });
 
     const data = (await response.json()) as IInstagramLongLivedTokenResponse & {
       error?: { message?: string };
