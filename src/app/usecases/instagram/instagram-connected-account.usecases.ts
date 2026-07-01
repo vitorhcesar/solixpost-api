@@ -1,21 +1,21 @@
-import { randomBytes } from "node:crypto";
-import { AppError } from "@/http/services/app/errors/app.error";
-import { InstagramConnectedAccount } from "@/domain/entities/instagram-connected-account.entity";
-import { AccountSlotStatusEnum } from "@/domain/enums/account-slot.enum";
-import type { IAccountSlotRepository } from "@/domain/repositories/account-slot.repository";
-import type {
-  IInstagramConnectedAccountRepository,
-  IInstagramOAuthStateRepository,
-} from "@/domain/repositories/instagram-connected-account.repository";
-import type {
-  IInstagramGraphService,
-  IInstagramOAuthService,
-} from "@/domain/instagram/instagram.service";
 import type {
   IInstagramConnectedAccountDto,
   IInstagramConnectSessionDto,
 } from "@/app/usecases/instagram/dto/instagram.dto";
 import { mapInstagramConnectedAccountToDto } from "@/app/usecases/instagram/map-instagram-connected-account-to-dto.util";
+import { InstagramConnectedAccount } from "@/domain/entities/instagram-connected-account.entity";
+import { AccountSlotStatusEnum } from "@/domain/enums/account-slot.enum";
+import type {
+  IInstagramGraphService,
+  IInstagramOAuthService,
+} from "@/domain/instagram/instagram.service";
+import type { IAccountSlotRepository } from "@/domain/repositories/account-slot.repository";
+import type {
+  IInstagramConnectedAccountRepository,
+  IInstagramOAuthStateRepository,
+} from "@/domain/repositories/instagram-connected-account.repository";
+import { AppError } from "@/http/services/app/errors/app.error";
+import { randomBytes } from "node:crypto";
 
 export class CreateInstagramConnectSessionUseCase {
   constructor(
@@ -62,7 +62,12 @@ export class CreateInstagramConnectSessionUseCase {
     const state = randomBytes(24).toString("hex");
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-    await this.oauthStateRepository.create(authUserId, state, expiresAt, slotId);
+    await this.oauthStateRepository.create(
+      authUserId,
+      state,
+      expiresAt,
+      slotId,
+    );
 
     return {
       authorizationUrl: this.instagramOAuthService.buildAuthorizationUrl(state),
@@ -85,10 +90,16 @@ export class CompleteInstagramConnectUseCase {
     code: string;
     state: string;
   }): Promise<IInstagramConnectedAccountDto> {
-    const oauthState = await this.oauthStateRepository.findValidState(input.state);
+    const oauthState = await this.oauthStateRepository.findValidState(
+      input.state,
+    );
 
     if (!oauthState) {
-      throw new AppError("State OAuth inválido ou expirado", 400, "invalid_oauth_state");
+      throw new AppError(
+        "State OAuth inválido ou expirado",
+        400,
+        "invalid_oauth_state",
+      );
     }
 
     if (!oauthState.accountSlotId) {
@@ -125,7 +136,9 @@ export class CompleteInstagramConnectUseCase {
     const tokens = await this.instagramOAuthService.exchangeAuthorizationCode(
       input.code,
     );
-    const profile = await this.instagramGraphService.getProfile(tokens.accessToken);
+    const profile = await this.instagramGraphService.getProfile(
+      tokens.accessToken,
+    );
     const tokenExpiresAt = new Date(Date.now() + tokens.expiresIn * 1000);
 
     const existingAccount =
@@ -140,7 +153,11 @@ export class CompleteInstagramConnectUseCase {
         )
       : null;
 
-    if (existingAccount && existingAccountSlot && existingAccountSlot.id !== slot.id) {
+    if (
+      existingAccount &&
+      existingAccountSlot &&
+      existingAccountSlot.id !== slot.id
+    ) {
       throw new AppError(
         "Esta conta Instagram já está conectada em outro slot",
         400,
@@ -148,7 +165,10 @@ export class CompleteInstagramConnectUseCase {
       );
     }
 
-    if (slot.instagramConnectedAccountId && slot.instagramConnectedAccountId !== existingAccount?.id) {
+    if (
+      slot.instagramConnectedAccountId &&
+      slot.instagramConnectedAccountId !== existingAccount?.id
+    ) {
       throw new AppError(
         "Este slot já possui uma conta conectada",
         400,
@@ -218,7 +238,11 @@ export class DisconnectInstagramAccountUseCase {
       );
 
     if (!account) {
-      throw new AppError("Conta Instagram não encontrada", 404, "instagram_account_not_found");
+      throw new AppError(
+        "Conta Instagram não encontrada",
+        404,
+        "instagram_account_not_found",
+      );
     }
 
     account.markAsDisconnected();

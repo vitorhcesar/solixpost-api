@@ -1,9 +1,9 @@
-import { AppError } from "@/http/services/app/errors/app.error";
-import { EnvService } from "@/http/services/env/env.service";
 import type {
   IInstagramOAuthService,
   IInstagramOAuthTokens,
 } from "@/domain/instagram/instagram.service";
+import { AppError } from "@/http/services/app/errors/app.error";
+import { EnvService } from "@/http/services/env/env.service";
 
 interface IInstagramShortLivedTokenPayload {
   access_token: string;
@@ -55,7 +55,9 @@ export class InstagramOAuthClient implements IInstagramOAuthService {
     return `https://www.instagram.com/oauth/authorize?${params.toString()}`;
   }
 
-  async exchangeAuthorizationCode(code: string): Promise<IInstagramOAuthTokens> {
+  async exchangeAuthorizationCode(
+    code: string,
+  ): Promise<IInstagramOAuthTokens> {
     const shortLivedToken = await this.requestShortLivedToken(code);
     const longLivedToken = await this.exchangeForLongLivedToken(
       shortLivedToken.access_token,
@@ -111,10 +113,13 @@ export class InstagramOAuthClient implements IInstagramOAuthService {
     formData.append("redirect_uri", this.env.instagramRedirectUri);
     formData.append("code", code);
 
-    const response = await fetch("https://api.instagram.com/oauth/access_token", {
-      method: "POST",
-      body: formData,
-    });
+    const response = await fetch(
+      "https://api.instagram.com/oauth/access_token",
+      {
+        method: "POST",
+        body: formData,
+      },
+    );
 
     const data = (await response.json()) as IInstagramShortLivedTokenEnvelope;
 

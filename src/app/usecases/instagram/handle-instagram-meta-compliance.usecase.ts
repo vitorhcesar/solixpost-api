@@ -24,7 +24,7 @@ export class HandleInstagramMetaComplianceUseCase {
     await this.disconnectAllByInstagramUserId(instagramUserId);
 
     const confirmationCode = randomBytes(12).toString("hex");
-    const statusUrl = new URL("/privacy", this.frontendOrigin);
+    const statusUrl = new URL("/data-deletion", this.frontendOrigin);
     statusUrl.searchParams.set("deletion", confirmationCode);
 
     return {

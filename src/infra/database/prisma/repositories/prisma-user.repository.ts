@@ -63,6 +63,18 @@ export class PrismaUserRepository
     return UserMapper.toDomain(row);
   }
 
+  async deleteById(id: string): Promise<void> {
+    const prisma = this.getPrismaClient();
+
+    await prisma.instagramOAuthState.deleteMany({
+      where: { userId: id },
+    });
+
+    await prisma.user.delete({
+      where: { id },
+    });
+  }
+
   async countInstagramAccountsByUserId(userId: string): Promise<number> {
     return this.getPrismaClient().instagramConnectedAccount.count({
       where: { userId },

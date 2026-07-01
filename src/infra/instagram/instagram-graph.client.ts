@@ -1,8 +1,8 @@
-import { AppError } from "@/http/services/app/errors/app.error";
 import type {
   IInstagramGraphService,
   IInstagramProfile,
 } from "@/domain/instagram/instagram.service";
+import { AppError } from "@/http/services/app/errors/app.error";
 
 interface IInstagramMeResponse {
   user_id?: string;
