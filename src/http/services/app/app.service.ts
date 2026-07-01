@@ -6,6 +6,7 @@ import { HealthRoutes } from "@/http/routes/api/v1/health.routes";
 import { UserRoutes } from "@/http/routes/api/v1/user.routes";
 import { InstagramRoutes } from "@/http/routes/api/v1/instagram.routes";
 import { InstagramCallbackRoutes } from "@/http/routes/api/v1/instagram-callback.routes";
+import { InstagramComplianceRoutes } from "@/http/routes/api/v1/instagram-compliance.routes";
 import { PublicationRoutes } from "@/http/routes/api/v1/publication.routes";
 import { AdminRoutes } from "@/http/routes/api/v1/admin.routes";
 import { WalletRoutes } from "@/http/routes/api/v1/wallet.routes";
@@ -53,6 +54,7 @@ export class AppService {
       group
         .use(new HealthRoutes(this.serverClient).build())
         .use(new InstagramCallbackRoutes(this.serverClient).build())
+        .use(new InstagramComplianceRoutes(this.serverClient).build())
         .use(new OmegaPayWebhookRoutes(this.serverClient).build())
         .use(new UserRoutes(this.serverClient).build())
         .use(new EmailVerificationRoutes(this.serverClient).build())

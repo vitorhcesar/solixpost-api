@@ -11,6 +11,9 @@ export interface IInstagramConnectedAccountRepository {
     userId: string,
     instagramUserId: string,
   ): Promise<InstagramConnectedAccount | null>;
+  findAllByInstagramUserId(
+    instagramUserId: string,
+  ): Promise<InstagramConnectedAccount[]>;
   save(account: InstagramConnectedAccount): Promise<InstagramConnectedAccount>;
   countAll(): Promise<number>;
 }

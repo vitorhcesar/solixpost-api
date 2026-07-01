@@ -38,6 +38,9 @@ jobs:
       #   BETTER_AUTH_URL         = https://api.solixpost.com.br
       #   PUBLIC_API_URL          = https://api.solixpost.com.br
       #   INSTAGRAM_REDIRECT_URI  = https://api.solixpost.com.br/api/v1/instagram/connect/callback
+      # Meta Business Login settings (Business login settings):
+      #   Deauthorize callback URL:  https://api.solixpost.com.br/api/v1/instagram/deauthorize
+      #   Data deletion request URL: https://api.solixpost.com.br/api/v1/instagram/data-deletion
       #   SMTP_FROM               = noreply@solixpost.com.br
       #
       # Conexões internas Docker (hostnames dos containers):

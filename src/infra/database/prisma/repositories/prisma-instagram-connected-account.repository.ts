@@ -60,6 +60,18 @@ export class PrismaInstagramConnectedAccountRepository
     return row ? InstagramConnectedAccountMapper.toDomain(row) : null;
   }
 
+  async findAllByInstagramUserId(
+    instagramUserId: string,
+  ): Promise<InstagramConnectedAccount[]> {
+    const rows = await this.getPrismaClient().instagramConnectedAccount.findMany(
+      {
+        where: { instagramUserId },
+      },
+    );
+
+    return rows.map((row) => InstagramConnectedAccountMapper.toDomain(row));
+  }
+
   async save(
     account: InstagramConnectedAccount,
   ): Promise<InstagramConnectedAccount> {
